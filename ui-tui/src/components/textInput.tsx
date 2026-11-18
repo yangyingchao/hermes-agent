@@ -1587,12 +1587,19 @@ export function TextInput({
         moveCursor(c, k.shift)
 
         return
-      } else if (wordMod && inp === 'b') {
+      } else if (k.meta && inp === 'b') {
         clearSel()
         c = wordLeft(v, c)
-      } else if (wordMod && inp === 'f') {
+      } else if (k.meta && inp === 'f') {
         clearSel()
         c = wordRight(v, c)
+      } else if (mod && inp === 'b') {
+        // Ctrl+B 退一个字符（Emacs 习惯）；按词移交给 Alt+B，别让 ctrl 也跳词。
+        clearSel()
+        c = prevPos(v, c)
+      } else if (mod && inp === 'f') {
+        clearSel()
+        c = nextPos(v, c)
       } else if (wordMod && inp === 'd') {
         // meta+d (readline kill-word). The web dashboard maps Ctrl+Delete to
         // ESC d, which hermes-ink decodes as meta+'d'; without this branch it
