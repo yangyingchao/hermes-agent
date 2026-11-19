@@ -1600,7 +1600,7 @@ export function TextInput({
       } else if (mod && inp === 'f') {
         clearSel()
         c = nextPos(v, c)
-      } else if (wordMod && inp === 'd') {
+      } else if (k.meta && inp === 'd') {
         // meta+d (readline kill-word). The web dashboard maps Ctrl+Delete to
         // ESC d, which hermes-ink decodes as meta+'d'; without this branch it
         // fell through to the printable path and typed a literal "d".
@@ -1615,6 +1615,17 @@ export function TextInput({
         } else {
           return
         }
+      } else if (mod && inp === 'd') {
+        // Ctrl+D 删除光标后的一个字符（Emacs delete-char）；删词交给 Alt+D。
+        if (range) {
+          v = v.slice(0, range.start) + v.slice(range.end)
+          c = range.start
+        } else if (c < v.length) {
+          clearSel()
+          v = v.slice(0, c) + v.slice(nextPos(v, c))
+        } else {
+          return
+        }
       } else if (range && (k.backspace || delFwd)) {
         v = v.slice(0, range.start) + v.slice(range.end)
         c = range.start
@@ -1623,7 +1634,9 @@ export function TextInput({
           // Cmd+Backspace — kill backward to start of line, matching the
           // Ctrl+U (unix-line-discard) path below.
           ;({ cursor: c, value: v } = killToLineStart(v, c))
-        } else if (wordMod) {
+        } else if (k.meta) {
+          // Alt+Backspace 删一个词（M-backspace backward-kill-word）；
+          // Ctrl+Backspace 落到下方单字符删除（Emacs C-<backspace>）。
           const t = wordLeft(v, c)
           v = v.slice(0, t) + v.slice(c)
           c = t

@@ -7,8 +7,9 @@ import { isLineKillModifier } from '../components/textInput.js'
 //   - on macOS it accepts `key.meta`, and hermes-ink reports Option as
 //     `meta` — so Option+Backspace (delete-word, the macOS standard) would
 //     silently become "delete the whole line".
-//   - on Linux/Windows it is `key.ctrl`, and Ctrl+Backspace is delete-word
-//     there in readline, VS Code, browsers, and Windows Terminal.
+//   - on Linux/Windows it is `key.ctrl`, and Ctrl+Backspace is
+//     delete-backward-char (single char, Emacs C-<backspace>) — never
+//     kill-line either.
 // Only the kitty CSI-u / modifyOtherKeys `super` bit means Cmd.
 
 const key = (over: Partial<{ ctrl: boolean; meta: boolean; super: boolean }> = {}) => ({
@@ -32,7 +33,7 @@ describe('isLineKillModifier', () => {
     expect(isLineKillModifier(key({ meta: true }))).toBe(false)
   })
 
-  it('rejects ctrl so Ctrl+Backspace stays delete-word on Linux/Windows', () => {
+  it('rejects ctrl so Ctrl+Backspace stays single-character delete', () => {
     expect(isLineKillModifier(key({ ctrl: true }))).toBe(false)
   })
 

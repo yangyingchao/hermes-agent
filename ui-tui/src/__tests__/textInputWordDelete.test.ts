@@ -14,7 +14,7 @@ function parseOne(sequence: string) {
 // The web dashboard maps Ctrl+Delete to ESC d (see
 // web/src/lib/pty-keyboard-shortcuts.ts). hermes-ink decodes that bare
 // meta-letter form via META_KEY_CODE_RE. If this contract ever changes the
-// `wordMod && inp === 'd'` binding in textInput.tsx stops firing and
+// `k.meta && inp === 'd'` binding in textInput.tsx stops firing and
 // Ctrl+Delete regresses to typing a literal "d".
 describe('Ctrl+Delete → ESC d decode contract', () => {
   it('decodes ESC d as meta+"d" so the composer binding is reached', () => {
@@ -22,6 +22,18 @@ describe('Ctrl+Delete → ESC d decode contract', () => {
 
     expect(event.key.meta).toBe(true)
     expect(event.key.ctrl).toBe(false)
+    expect(event.input).toBe('d')
+  })
+})
+
+// Ctrl+D (0x04) must reach the `mod && inp === 'd'` delete-char branch; if
+// hermes-ink ever stops decoding it as ctrl+"d" the binding silently dies.
+describe('Ctrl+D decode contract', () => {
+  it('decodes 0x04 as ctrl+"d" so the delete-char branch is reached', () => {
+    const event = new InputEvent(parseOne('\x04'))
+
+    expect(event.key.ctrl).toBe(true)
+    expect(event.key.meta).toBe(false)
     expect(event.input).toBe('d')
   })
 })
