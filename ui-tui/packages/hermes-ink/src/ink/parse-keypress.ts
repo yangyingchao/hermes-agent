@@ -598,6 +598,11 @@ function keycodeToName(keycode: number): string | undefined {
     // first function-key codepoints in the private-use range. F1 through F12
     // use their legacy CSI/SS3 sequences below.
 
+    case 8:
+      // BS — the second byte of the ESC+BS encoding for Meta+Backspace, and
+      // what terminals using the CSI-u keycode table report for backspace.
+      return 'backspace'
+
     case 9:
       return 'tab'
 

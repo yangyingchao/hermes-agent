@@ -191,6 +191,16 @@ function tokenize(
           // without that timing boundary the legacy encoding is ambiguous.
           i++
           emitSequence(data.slice(seqStart, i))
+        } else if (code === C0.DEL || code === C0.BS) {
+          // Meta+Backspace. Terminals without the kitty/modifyOtherKeys
+          // protocols encode M-DEL as ESC DEL (and M-C-h as ESC BS). Both
+          // bytes must stay in one token: split apart, the ESC surfaces as a
+          // bare Escape keypress and the DEL as a plain single-char delete,
+          // silently dropping the Alt. parseKeypress() already decodes the
+          // pair (its `'\x1b\b'` / `'\x1b\x7f'` branch), so the contract is
+          // one sequence token here.
+          i++
+          emitSequence(data.slice(seqStart, i))
         } else if (isCSIIntermediate(code)) {
           // Intermediate byte (e.g., ESC ( for charset) - continue buffering
           result.state = 'escapeIntermediate'

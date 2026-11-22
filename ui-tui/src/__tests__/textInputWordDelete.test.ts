@@ -38,6 +38,19 @@ describe('Ctrl+D decode contract', () => {
   })
 })
 
+// Alt+Backspace must reach the `k.meta && k.backspace` branch in textInput.tsx
+// (backward-kill-word). Terminals without the kitty/modifyOtherKeys protocols
+// send it as ESC DEL or ESC BS; if hermes-ink ever splits those bytes the Alt
+// is lost and the press degrades to a single-char delete.
+describe('Meta+Backspace decode contract', () => {
+  it.each(['\x7f', '\b'])('decodes ESC+%j as meta+backspace', byte => {
+    const event = new InputEvent(parseOne(`\x1b${byte}`))
+
+    expect(event.key.meta).toBe(true)
+    expect(event.key.backspace).toBe(true)
+  })
+})
+
 describe('deleteWordForward', () => {
   it('deletes the word to the right of the cursor', () => {
     // cursor before "hello" → removes "hello" and the trailing space.

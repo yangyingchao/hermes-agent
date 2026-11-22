@@ -29,6 +29,25 @@ describe('tokenizer escape-sequence boundaries', () => {
   })
 })
 
+describe('tokenizer meta+backspace boundary', () => {
+  it.each(['\x7f', '\b'])('keeps ESC+%j together when received in one feed', byte => {
+    const t = createTokenizer({})
+    const sequence = `\x1b${byte}`
+
+    expect(t.feed(sequence)).toEqual([{ type: 'sequence', value: sequence }])
+    expect(t.buffer()).toBe('')
+  })
+
+  it.each(['\x7f', '\b'])('reassembles ESC+%j split across two feeds', byte => {
+    const t = createTokenizer({})
+    const sequence = `\x1b${byte}`
+
+    expect(t.feed('\x1b')).toEqual([])
+    expect(t.feed(byte)).toEqual([{ type: 'sequence', value: sequence }])
+    expect(t.buffer()).toBe('')
+  })
+})
+
 describe('tokenizer state-aware flush', () => {
   it('drops a partial control sequence that survives a second flush (truncation)', () => {
     const t = createTokenizer({ x10Mouse: true })

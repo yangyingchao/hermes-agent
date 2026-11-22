@@ -12,6 +12,33 @@ describe('legacy modified return parsing', () => {
   })
 })
 
+describe('legacy meta+backspace parsing', () => {
+  it.each(['\x7f', '\b'])('parses ESC+%j as one Alt+Backspace keypress', byte => {
+    const sequence = `\x1b${byte}`
+    const [keys] = parseMultipleKeypresses(INITIAL_STATE, sequence)
+
+    expect(keys).toHaveLength(1)
+    expect(keys[0]).toMatchObject({ name: 'backspace', ctrl: false, meta: true, shift: false })
+  })
+
+  it('leaves a bare DEL as a plain backspace', () => {
+    const [keys] = parseMultipleKeypresses(INITIAL_STATE, '\x7f')
+
+    expect(keys).toHaveLength(1)
+    expect(keys[0]).toMatchObject({ name: 'backspace', meta: false })
+  })
+
+  it.each([
+    ['CSI-u', '\x1b[8;3u'],
+    ['modifyOtherKeys', '\x1b[27;3;8~']
+  ])('maps the BS keycode to backspace (%s)', (_label, sequence) => {
+    const [keys] = parseMultipleKeypresses(INITIAL_STATE, sequence)
+
+    expect(keys).toHaveLength(1)
+    expect(keys[0]).toMatchObject({ name: 'backspace', meta: true })
+  })
+})
+
 describe('legacy function-key parsing', () => {
   it.each([
     ['f1', '\x1bOP'],
